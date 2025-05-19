@@ -1,0 +1,10 @@
+다렉 함수 정리
+
+
+AdjustWindowRect() 
+	BOOL WINAPI AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu);
+	윈도우가 원하는 클라이언트 영역의 크기를 가지도록 윈도우의 크기를 계산하여 준다. 
+	§ lpRect : 원하는 클라이언트 영역의 크기를 나타내는 사각형을 지정한다. 윈도우의 새로운 크기를
+lpRect를 통하여 반환한다.
+	§ dwStyle : 윈도우의 스타일을 지정한다. 
+	§ bMenu : 윈도우가 메뉴를 가지는 가의 여부를 지정한다. bMenu가 참이면 윈도우가 메뉴를 가지고 있음을 의미한다. 

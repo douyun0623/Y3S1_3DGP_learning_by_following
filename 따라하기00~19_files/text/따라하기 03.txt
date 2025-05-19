@@ -1,0 +1,5 @@
+따라하기 03
+
+“stdafx.h" 파일에 헤더 파일들을 추가하는 이유
+PCH
+	Visual Studio에서는 PCH(Precompiled Header)를 통하여 자주 변경되지 않는 헤더 파일에 대한 컴파일을 매번 하지 않아도 되도록 하는 기능을 제공하기 때문이다.

@@ -492,8 +492,7 @@ void CGameFramework::FrameAdvance()
 	::ZeroMemory(&d3dResourceBarrier, sizeof(D3D12_RESOURCE_BARRIER));
 	d3dResourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	d3dResourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	d3dResourceBarrier.Transition.pResource =
-		m_ppd3dRenderTargetBuffers[m_nSwapChainBufferIndex];
+	d3dResourceBarrier.Transition.pResource = m_ppd3dRenderTargetBuffers[m_nSwapChainBufferIndex];
 	d3dResourceBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	d3dResourceBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	d3dResourceBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
@@ -512,6 +511,7 @@ void CGameFramework::FrameAdvance()
 	//현재의 렌더 타겟에 해당하는 서술자의 CPU 주소(핸들)를 계산한다.
 
 	float pfClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+	// float pfClearColor[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 	m_pd3dCommandList->ClearRenderTargetView(d3dRtvCPUDescriptorHandle,
 		pfClearColor/*Colors::Azure*/, 0, NULL);
 	//원하는 색상으로 렌더 타겟(뷰)을 지운다.
@@ -522,7 +522,9 @@ void CGameFramework::FrameAdvance()
 
 	m_pd3dCommandList->ClearDepthStencilView(d3dDsvCPUDescriptorHandle,
 		D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, NULL);
-	//원하는 값으로 깊이-스텐실(뷰)을 지운다.
+	//원하는 값으로 깊이-스텐실(뷰)을 지운다. 
+	// (전체 영역을 클리어 한다는 의미) 
+	// 이전 프레임에서 사용된 깊이/스텐실 값이 남아 있으면 다음 프레임에 렌더링 오류나 불필요한 가림 현상이 생깁니다.
 
 	m_pd3dCommandList->OMSetRenderTargets(1, &d3dRtvCPUDescriptorHandle, TRUE,
 		&d3dDsvCPUDescriptorHandle);
@@ -538,6 +540,7 @@ void CGameFramework::FrameAdvance()
 
 	hResult = m_pd3dCommandList->Close();
 	//명령 리스트를 닫힌 상태로 만든다.
+	// 리스트가 열려있으면 상태 리스트를 실행할 수 없다.
 
 	ID3D12CommandList* ppd3dCommandLists[] = { m_pd3dCommandList };
 	m_pd3dCommandQueue->ExecuteCommandLists(1, ppd3dCommandLists);
@@ -547,13 +550,14 @@ void CGameFramework::FrameAdvance()
 	//GPU가 모든 명령 리스트를 실행할 때 까지 기다린다.
 
 	DXGI_PRESENT_PARAMETERS dxgiPresentParameters;
-	dxgiPresentParameters.DirtyRectsCount = 0;
-	dxgiPresentParameters.pDirtyRects = NULL;
-	dxgiPresentParameters.pScrollRect = NULL;
-	dxgiPresentParameters.pScrollOffset = NULL;
+	dxgiPresentParameters.DirtyRectsCount = 0;      // 업데이트할 영역 수 (0이면 전체)
+	dxgiPresentParameters.pDirtyRects = NULL;       // 업데이트할 영역들 (NULL이면 전체 화면)
+	dxgiPresentParameters.pScrollRect = NULL;       // 스크롤 최적화 안 함
+	dxgiPresentParameters.pScrollOffset = NULL;     // 스크롤 오프셋도 없음
 	m_pdxgiSwapChain->Present1(1, 0, &dxgiPresentParameters);
 	/*스왑체인을 프리젠트한다. 프리젠트를 하면 현재 렌더 타겟(후면버퍼)의 내용이 전면버퍼로 옮겨지고 렌더 타겟 인
 	덱스가 바뀔 것이다.*/
 
 	m_nSwapChainBufferIndex = m_pdxgiSwapChain->GetCurrentBackBufferIndex();
+	// 다음에 쓸 후면 버퍼의 인덱스를 알려주는 코드 ( 현재 그릴 차례가 된 후면 버퍼의 인덱스 )
 }
